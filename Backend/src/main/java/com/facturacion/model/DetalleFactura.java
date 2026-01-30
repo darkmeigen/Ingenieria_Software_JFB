@@ -13,7 +13,7 @@ public class DetalleFactura {
 
     @ManyToOne
     @JoinColumn(name = "factura_id")
-    @JsonIgnore // Evita bucles infinitos al convertir a JSON
+    @JsonIgnore 
     private Factura factura;
 
     @ManyToOne
@@ -22,5 +22,5 @@ public class DetalleFactura {
 
     private Integer cantidad;
     private Double precioUnitario;
-    private Double subtotal; // cantidad * precioUnitario
+    private Double subtotal; 
 }
