@@ -1,63 +1,52 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterView } from 'vue-router'
 </script>
 
 <template>
-  <header>
-    <nav class="navbar">
-      <div class="brand">
-        <span class="logo-icon">:D</span>
-        <span class="logo-text">Sistema Contable <strong>JFB</strong></span>
-      </div>
-      <div class="menu">
-        <RouterLink to="/">Inicio</RouterLink>
-        <RouterLink to="/login">Acceso</RouterLink>
-        <RouterLink to="/facturar" class="highlight">Facturación</RouterLink>
-      </div>
-    </nav>
-  </header>
-
-  <main>
-    <RouterView />
-  </main>
+  <RouterView />
 </template>
 
-<style scoped>
-header {
-  background-color: #ffffff;
+<style>
+/* Global Styles */
+:root {
+  --primary: #4CAF50;
+  --secondary: #2E7D32;
+  --accent: #FFC107;
+  --text: #333;
+  --bg: #f4f6f9;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+.card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  position: sticky;
-  top: 0;
-  z-index: 100;
 }
 
-.navbar {
-  max-width: 1100px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 20px;
-}
-
-.brand { display: flex; align-items: center; gap: 10px; font-size: 1.2rem; color: var(--primary); }
-
-.menu a {
-  text-decoration: none;
-  color: #666;
-  margin-left: 20px;
-  font-weight: 500;
-  transition: color 0.3s;
-}
-
-.menu a:hover, .router-link-active { color: var(--primary); }
-
-.highlight {
-  background-color: var(--primary);
-  color: white !important;
-  padding: 8px 15px;
+.btn {
+  padding: 10px 20px;
+  border: none;
   border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.3s;
 }
 
-.highlight:hover { background-color: var(--secondary); }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--secondary); }
+
+input, select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
 </style>

@@ -10,8 +10,9 @@
       <div class="card form-panel">
         <h3>1. Datos del Cliente</h3>
         <select v-model="clienteId">
-          <option value="1">Juan Baez (RUC: 1700...001)</option>
-          <option value="2">Maria Lopez (RUC: 1700...002)</option>
+          <option v-for="c in clientes" :key="c.id" :value="c.id">
+            {{ c.nombre }} ({{ c.identificacion }})
+          </option>
         </select>
 
         <hr class="divider">
@@ -19,9 +20,9 @@
         <h3>2. Agregar Productos</h3>
         <label>Seleccionar Producto</label>
         <select v-model="productoSeleccionado">
-          <option :value="{id: 1, nombre: 'Laptop Dell', precio: 1200.00}">Laptop Dell ($1200.00)</option>
-          <option :value="{id: 2, nombre: 'Mouse Logitech', precio: 25.00}">Mouse Logitech ($25.00)</option>
-          <option :value="{id: 3, nombre: 'Teclado Mecanico', precio: 80.00}">Teclado Mecánico ($80.00)</option>
+          <option v-for="p in productos" :key="p.id" :value="p">
+            {{ p.nombre }} - ${{ p.precio }} (Stock: {{ p.stock }})
+          </option>
         </select>
 
         <div class="row">
@@ -85,12 +86,33 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 
-const clienteId = ref(1);
+const clientes = ref([]);
+const productos = ref([]);
+
+const clienteId = ref('');
 const productoSeleccionado = ref(null);
 const cantidad = ref(1);
 const carrito = ref([]);
+
+const fetchData = async () => {
+  try {
+    const [resClientes, resProductos] = await Promise.all([
+      fetch('http://localhost:8080/api/clientes'),
+      fetch('http://localhost:8080/api/productos')
+    ]);
+    clientes.value = await resClientes.json();
+    productos.value = await resProductos.json();
+    
+    if (clientes.value.length > 0) clienteId.value = clientes.value[0].id;
+    if (productos.value.length > 0) productoSeleccionado.value = productos.value[0];
+  } catch (e) {
+    console.error("Error cargando datos", e);
+  }
+};
+
+onMounted(fetchData);
 
 const totalCalculado = computed(() => {
   return carrito.value.reduce((acc, item) => acc + item.subtotal, 0);
@@ -98,6 +120,12 @@ const totalCalculado = computed(() => {
 
 const agregarItem = () => {
   if (productoSeleccionado.value && cantidad.value > 0) {
+    // Check if stock is sufficient
+    if (productoSeleccionado.value.stock < cantidad.value) {
+      alert("Stock insuficiente");
+      return;
+    }
+
     carrito.value.push({
       productoId: productoSeleccionado.value.id,
       nombre: productoSeleccionado.value.nombre,
@@ -114,7 +142,7 @@ const eliminarItem = (index) => {
 
 const enviarFactura = async () => {
   const facturaDTO = {
-    clienteId: parseInt(clienteId.value),
+    clienteId: clienteId.value,
     productos: carrito.value.map(item => ({
       productoId: item.productoId,
       cantidad: item.cantidad
@@ -130,14 +158,15 @@ const enviarFactura = async () => {
 
     if (response.ok) {
       const data = await response.json();
-      alert(`Factura N° ${data.idFactura} creada exitosamente!\nTotal: $${data.total}`);
+      alert(`Factura N° ${data.id} creada exitosamente!\nTotal: $${data.total}`);
       carrito.value = [];
+      fetchData(); // Refresh stock
     } else {
-      alert(" Error al procesar. Revisa el Stock en el servidor.");
+      alert("Error al procesar. Revisa el Stock.");
     }
   } catch (error) {
     console.error(error);
-    alert("Error de conexión. ¿Está encendido el Backend?");
+    alert("Error de conexión.");
   }
 };
 </script>
