@@ -1,14 +1,14 @@
 package com.facturacion.model;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.Data;
 
-@Entity
 @Data
+@Document(collection = "clientes")
 public class Cliente {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idCliente;
+    private String id; // Changed to String for MongoDB ObjectId
 
     private String nombre;
     private String identificacion; // RUC o Cédula

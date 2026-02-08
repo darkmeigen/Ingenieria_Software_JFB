@@ -1,14 +1,14 @@
 package com.facturacion.model;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.Data;
 
-@Entity
 @Data
+@Document(collection = "productos")
 public class Producto {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idProducto;
+    private String id; // Changed to String for MongoDB ObjectId
 
     private String nombre;
     private String descripcion;

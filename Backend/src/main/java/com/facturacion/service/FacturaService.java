@@ -13,20 +13,23 @@ import java.util.List;
 @Service
 public class FacturaService {
 
-    @Autowired private FacturaRepository facturaRepository;
-    @Autowired private ProductoRepository productoRepository;
-    @Autowired private ClienteRepository clienteRepository;
+    @Autowired
+    private FacturaRepository facturaRepository;
+    @Autowired
+    private ProductoRepository productoRepository;
+    @Autowired
+    private ClienteRepository clienteRepository;
 
-    @Transactional // Garantiza que si falla algo (ej. stock), no se guarde la factura
+    @Transactional
     public Factura crearFactura(FacturaRequest request) {
-        
+
         Cliente cliente = clienteRepository.findById(request.getClienteId())
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + request.getClienteId()));
 
         Factura factura = new Factura();
         factura.setCliente(cliente);
         factura.setFecha(LocalDateTime.now());
-        factura.setEstado("CREADA"); 
+        factura.setEstado("CREADA");
 
         double subtotalAcumulado = 0.0;
         for (var item : request.getProductos()) {
@@ -51,7 +54,7 @@ public class FacturaService {
         }
 
         factura.setSubtotal(subtotalAcumulado);
-        factura.setIva(subtotalAcumulado * 0.15); 
+        factura.setIva(subtotalAcumulado * 0.15);
         factura.setTotal(subtotalAcumulado * 1.15);
         return facturaRepository.save(factura);
     }

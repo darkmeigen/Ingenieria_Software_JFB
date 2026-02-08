@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class DetalleRequest {
-    private Long productoId;
+    private String productoId;
     private Integer cantidad;
 }
