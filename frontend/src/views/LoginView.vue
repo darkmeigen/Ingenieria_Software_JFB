@@ -12,7 +12,7 @@
     <div class="form-section">
       <div class="form-container">
         <div class="brand">
-          <span class="logo-icon">🤝</span>
+          <img src="/Logo.jpeg" alt="Logo" class="logo-img" />
           <h2>{{ isRegistering ? 'Crear Cuenta' : 'Iniciar Sesión' }}</h2>
         </div>
 
@@ -79,14 +79,29 @@ const form = ref({
 });
 
 onMounted(() => {
-  // Select random image
-  const randomIndex = Math.floor(Math.random() * images.length);
-  currentImage.value = images[randomIndex];
+  // Initialize with first image
+  currentImage.value = images[0];
+  
+  // Carousel Interval
+  setInterval(() => {
+    const currentIndex = images.indexOf(currentImage.value);
+    const nextIndex = (currentIndex + 1) % images.length;
+    currentImage.value = images[nextIndex];
+  }, 5000); // Change every 5 seconds
 });
 
 const handleSubmit = async () => {
   const endpoint = isRegistering.value ? '/api/auth/register' : '/api/auth/login';
   
+  // Validation
+  if (isRegistering.value) {
+      const nameRegex = /^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚ\s]+$/;
+      if (!nameRegex.test(form.value.nombre)) {
+          alert('El nombre solo puede contener letras, números y espacios.');
+          return;
+      }
+  }
+
   try {
     const res = await fetch(`http://localhost:8080${endpoint}`, {
       method: 'POST',
@@ -104,10 +119,19 @@ const handleSubmit = async () => {
             router.push('/facturar');
         }
     } else {
-        alert('Error: Credenciales inválidas o usuario ya existe.');
+        const errorText = await res.text();
+        console.error("Error Response:", errorText);
+        try {
+             // Intenta parsear si es JSON
+            const errorJson = JSON.parse(errorText);
+            alert(`Error: ${errorJson.message || errorJson.error || 'Desconocido'}`);
+        } catch (e) {
+            alert(`Error del Servidor: ${errorText}`);
+        }
     }
   } catch (e) {
-    alert('Error de conexión con el servidor.');
+    console.error(e);
+    alert('Error de conexión con el servidor (Revisa si el Backend está corriendo).');
   }
 };
 </script>
@@ -120,15 +144,17 @@ const handleSubmit = async () => {
 }
 
 .image-section {
-  flex: 1;
+  width: 35%; /* Thinner image section */
   background-size: cover;
   background-position: center;
   position: relative;
   display: flex;
   align-items: flex-end;
   color: white;
+  transition: background-image 1s ease-in-out;
 }
 
+/* ... existing overlay styles ... */
 .image-section .overlay {
     background: linear-gradient(transparent, rgba(0,0,0,0.8));
     width: 100%;
@@ -136,14 +162,16 @@ const handleSubmit = async () => {
 }
 
 .form-section {
-  width: 500px;
-  background: white;
+  flex: 1; /* Takes remaining space */
+  /* Gradient: Top half White, Bottom half fading to Navy Blue */
+  background: linear-gradient(180deg, #ffffff 55%, #001f3f 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 40px;
 }
 
+/* ... existing form container styles ... */
 .form-container {
     width: 100%;
     max-width: 400px;
@@ -154,7 +182,12 @@ const handleSubmit = async () => {
     margin-bottom: 30px;
 }
 
-.logo-icon { font-size: 3rem; display: block; margin-bottom: 10px; }
+.logo-img {
+    height: 150px; /* Larger, squared size as requested */
+    width: auto;
+    margin-bottom: 15px;
+    mix-blend-mode: multiply; /* Optional: helps blend if logo has white bg */
+}
 
 .full-width { width: 100%; margin-top: 20px; padding: 12px; font-size: 1.1rem; }
 

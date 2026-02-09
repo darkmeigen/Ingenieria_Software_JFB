@@ -74,6 +74,13 @@ const fetchClientes = async () => {
 };
 
 const guardarCliente = async () => {
+  // Validation
+  const nameRegex = /^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚ\s]+$/;
+  if (!nameRegex.test(form.value.nombre)) {
+      alert('El nombre solo puede contener letras, números y espacios.');
+      return;
+  }
+
   try {
     const res = await fetch('http://localhost:8080/api/clientes', {
       method: 'POST',
