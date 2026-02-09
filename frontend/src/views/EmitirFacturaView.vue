@@ -78,18 +78,306 @@
       </div>
 
       <table class="invoice-table">
-        <!-- ... -->
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Cantidad</th>
+            <th>Descripción</th>
+            <th>Precio</th>
+            <th>Descuento(%)</th>
+            <th>Subtotal</th>
+            <th>IVA</th>
+            <th>Total</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(item, index) in carrito" :key="index">
+            <td>{{ item.codigo || item.id.substring(0,6) }}</td>
+            <td>
+                <input type="number" v-model="item.cantidad" min="1" class="qty-input" @change="recalcularItem(item)">
+            </td>
+            <td>{{ item.nombre }}</td>
+            <td>{{ item.precio.toFixed(2) }}</td>
+            <td>
+                <input type="number" v-model="item.descuento" min="0" max="100" class="qty-input" @change="recalcularItem(item)">
+            </td>
+            <td>{{ item.subtotal.toFixed(2) }}</td>
+            <td>{{ item.iva.toFixed(2) }}</td>
+            <td>{{ item.total.toFixed(2) }}</td>
+            <td><button @click="eliminarItem(index)" class="btn-trash">🗑️</button></td>
+          </tr>
+          <tr v-if="carrito.length === 0">
+             <td colspan="9" class="empty-cell">0.00</td>
+          </tr>
+        </tbody>
       </table>
-      <!-- ... -->
+      
+      <div class="total-row">
+        <span>TOTAL IMPORTE</span>
+        <span class="total-amount">{{ granTotal.toFixed(2) }}</span>
+      </div>
     </div>
 
-    <!-- ... -->
+    <!-- Formas de Pago Multipago -->
+    <div class="card payment-section">
+        <div class="section-header">
+            <span class="flex-align">
+                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24" class="mr-2">
+                    <rect x="2" y="5" width="20" height="14" rx="2" />
+                    <line x1="2" y1="10" x2="22" y2="10" />
+                    <line x1="12" y1="15" x2="12" y2="15" stroke-width="3"/>
+                 </svg>
+                Formas de Pago
+            </span>
+            <div class="actions">
+                <button class="btn btn-warning small" @click="agregarPago">+ Agregar Pago</button>
+            </div>
+        </div>
+        <div class="payment-list">
+            <div v-for="(pago, idx) in pagos" :key="idx" class="payment-row">
+                <div class="payment-method">
+                    <select v-model="pago.metodo" class="form-select full">
+                        <option value="EFECTIVO">EFECTIVO</option>
+                        <option value="TRANSFERENCIA">TRANSFERENCIA</option>
+                        <option value="TARJETA_DEBITO">TARJETA DE DEBITO</option>
+                        <option value="TARJETA_CREDITO">TARJETA DE CRÉDITO</option>
+                    </select>
+                </div>
+                <div class="payment-amount">
+                    <input type="number" v-model="pago.monto" class="form-input text-right" step="0.01">
+                    <button class="btn-trash-red" @click="eliminarPago(idx)">🗑️</button>
+                </div>
+            </div>
+            <div class="payment-footer">
+                <small>Total Pagado: $ {{ totalPagado.toFixed(2) }}</small>
+                <small :class="{'text-red': faltante > 0.01, 'text-green': faltante <= 0.01}">
+                    {{ faltante > 0.01 ? 'Faltante: $ ' + faltante.toFixed(2) : 'Completo' }}
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información Adicional -->
+    <div class="card info-section">
+        <div class="section-header flex-align">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" class="mr-2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            Información Adicional
+        </div>
+        <textarea v-model="infoAdicional" class="form-input full-width" rows="2" placeholder="Ingrese información adicional..."></textarea>
+    </div>
+
+    <!-- Botones Finales -->
+    <div class="footer-actions">
+        <button class="btn btn-danger big" @click="$router.push('/facturar')">🚫 Cancelar</button>
+        <button class="btn btn-success big" @click="guardarFactura">✅ Guardar</button>
+    </div>
+
+    <!-- MODAL CLIENTE -->
+    <div v-if="mostrarModal" class="modal-overlay">
+      <div class="modal-content animate-pop">
+        <div class="modal-header">
+            <div class="modal-title">
+                <h2 class="flex-align">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="2" width="28" height="28" class="mr-2">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="9" cy="7" r="4"></circle>
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    Clientes
+                </h2>
+            </div>
+            <span class="close-btn" @click="mostrarModal = false">✖</span>
+        </div>
+        
+        <div class="modal-body">
+            <div class="row">
+                <div class="col">
+                    <label>Fecha de emisión *</label>
+                    <input type="date" :value="today" disabled class="form-input">
+                </div>
+                <!-- Autocomplete Client Section -->
+                <div class="col search-col relative">
+                    <label>Identificación *</label>
+                    <div class="input-with-btn">
+                        <input 
+                            v-model="tempCliente.identificacion" 
+                            class="form-input" 
+                            @input="onSearchInput"
+                            placeholder="Buscar..."
+                            autocomplete="off"
+                        >
+                        <button class="btn-search">🔍</button>
+                    </div>
+                    <!-- Client Autocomplete Dropdown -->
+                    <ul v-if="sugerencias.length" class="autocomplete-list">
+                        <li v-for="sug in sugerencias" :key="sug.id" @click="seleccionarSugerencia(sug)">
+                            <strong>{{ sug.identificacion }}</strong> - {{ sug.nombre }}
+                        </li>
+                    </ul>
+                </div>
+                <div class="col">
+                    <label>Tipo Identificación *</label>
+                    <select v-model="tempCliente.tipoId" class="form-input">
+                        <option value="CEDULA">Cédula</option>
+                        <option value="RUC">RUC</option>
+                    </select>
+                </div>
+                 <div class="col">
+                    <label>Teléfono</label>
+                    <input v-model="tempCliente.telefono" class="form-input">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col full">
+                    <label>Nombres *</label>
+                    <input v-model="tempCliente.nombre" class="form-input">
+                </div>
+                <div class="col full">
+                    <label>Correo *</label>
+                    <input v-model="tempCliente.email" class="form-input">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col full">
+                    <label>Dirección *</label>
+                    <input v-model="tempCliente.direccion" class="form-input">
+                </div>
+            </div>
+            
+            <div class="info-box">
+                NOTA: A medida que escribas se mostrarán las coincidencias de clientes ya registrados.
+            </div>
+        </div>
+        
+        <div class="modal-footer">
+            <button class="btn btn-secondary" @click="mostrarModal = false">Cancelar</button>
+            <button class="btn btn-primary" @click="confirmarCliente">Guardar</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </template>
 
 <script setup>
-// ... existing imports ...
+import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import NotificationToast from '../components/NotificationToast.vue';
 
-// ... existing code ...
+const router = useRouter();
+const toast = ref(null);
+const today = new Date().toISOString().split('T')[0];
+const mostrarModal = ref(true); 
+const cliente = ref(null);
+const busquedaProducto = ref('');
+const carrito = ref([]);
+const sugerencias = ref([]);
+const prodSugerencias = ref([]); 
+const loggedUserName = ref('USUARIO');
+const infoAdicional = ref('');
+
+// Payment Methods
+const pagos = ref([
+    { metodo: 'EFECTIVO', monto: 0 }
+]);
+
+const tempCliente = ref({
+    tipoId: 'CEDULA',
+    identificacion: '',
+    nombre: '',
+    email: '',
+    telefono: '',
+    direccion: ''
+});
+
+onMounted(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+        const u = JSON.parse(userStr);
+        loggedUserName.value = u.nombre || u.username || 'USUARIO';
+    }
+});
+
+// Watch total to auto-update single payment default
+const granTotal = computed(() => carrito.value.reduce((acc, item) => acc + item.total, 0));
+
+watch(granTotal, (newTotal) => {
+    if (pagos.value.length === 1) pagos.value[0].monto = newTotal;
+});
+
+const totalPagado = computed(() => pagos.value.reduce((acc, p) => acc + (parseFloat(p.monto) || 0), 0));
+const faltante = computed(() => Math.max(0, granTotal.value - totalPagado.value));
+
+// --- Client Autocomplete ---
+let searchTimeout;
+const onSearchInput = () => {
+    clearTimeout(searchTimeout);
+    if (!tempCliente.value.identificacion) {
+        sugerencias.value = [];
+        return;
+    }
+    
+    searchTimeout = setTimeout(async () => {
+        try {
+            const res = await fetch(`http://localhost:8080/api/clientes/autocomplete?query=${tempCliente.value.identificacion}`);
+            if (res.ok) {
+                const data = await res.json();
+                sugerencias.value = data;
+                
+                if (data.length === 0) {
+                     sugerencias.value.push({
+                        id: 'new',
+                        identificacion: tempCliente.value.identificacion,
+                        nombre: 'Cliente no encontrado - CREAR NUEVO',
+                        isNew: true
+                     });
+                }
+            }
+        } catch (e) {
+            console.error("Error searching clients");
+        }
+    }, 300);
+};
+
+const seleccionarSugerencia = (sug) => {
+    if (sug.isNew) {
+        mostrarModal.value = true;
+        tempCliente.value.identificacion = sug.identificacion;
+        tempCliente.value.nombre = ''; tempCliente.value.email = '';
+        tempCliente.value.telefono = ''; tempCliente.value.direccion = '';
+    } else {
+        cliente.value = sug;
+        mostrarModal.value = false;
+        tempCliente.value = { ...sug, tipoId: 'CEDULA' }; 
+    }
+    sugerencias.value = [];
+};
+
+// --- Product Autocomplete ---
+let prodTimeout;
+const onSearchProduct = () => {
+    clearTimeout(prodTimeout);
+    if (!busquedaProducto.value) {
+        prodSugerencias.value = [];
+        return;
+    }
+    prodTimeout = setTimeout(async () => {
+        try {
+            const res = await fetch(`http://localhost:8080/api/productos/buscar?query=${busquedaProducto.value}`);
+            if(res.ok) {
+                prodSugerencias.value = await res.json();
+            }
+        } catch(e) {}
+    }, 300);
+};
 
 const seleccionarProducto = (prod) => {
     if (prod.stock <= 0) {

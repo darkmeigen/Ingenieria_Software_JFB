@@ -6,7 +6,6 @@
         <h1>Gestión de Productos</h1>
       </div>
       <div class="action-buttons">
-          <button @click="showImportModal = true" class="btn btn-secondary">📂 Importar Excel</button>
           <button @click="showModal = true" class="btn btn-primary">+ Nuevo Producto</button>
       </div>
     </div>
@@ -35,32 +34,6 @@
           </tr>
         </tbody>
       </table>
-    </div>
-
-    <!-- Import Modal -->
-    <div v-if="showImportModal" class="modal-overlay">
-        <div class="modal card">
-            <h3>Importar Productos</h3>
-            <div class="alert-info">
-                ⚠️ <strong>¡Atención!</strong><br>
-                Los productos se subirán con un formato específico. Si el archivo no cumple con el formato, no se aceptará.
-            </div>
-            
-            <div class="import-actions">
-                <button @click="downloadTemplate" class="btn btn-outline">⬇️ Descargar Formato</button>
-                
-                <div class="file-upload">
-                    <input type="file" ref="fileInput" accept=".xlsx, .xls" @change="handleFileUpload" style="display: none">
-                    <button @click="$refs.fileInput.click()" class="btn btn-success">Escoger Archivo</button>
-                    <span v-if="selectedFile">{{ selectedFile.name }}</span>
-                </div>
-            </div>
-
-            <div class="actions">
-                <button @click="showImportModal = false; selectedFile = null" class="btn">Cancelar</button>
-                <button @click="uploadFile" class="btn btn-primary" :disabled="!selectedFile">Subir Archivo</button>
-            </div>
-        </div>
     </div>
 
     <!-- Modal Form -->
@@ -100,9 +73,6 @@ import { ref, onMounted } from 'vue';
 
 const productos = ref([]);
 const showModal = ref(false);
-const showImportModal = ref(false);
-const selectedFile = ref(null);
-const fileInput = ref(null);
 const form = ref({ nombre: '', descripcion: '', precio: 0, stock: 0 });
 
 const fetchProductos = async () => {
@@ -145,56 +115,6 @@ const eliminarProducto = async (id) => {
   fetchProductos();
 };
 
-// Excel Logic
-const downloadTemplate = async () => {
-    try {
-        const res = await fetch('http://localhost:8080/api/productos/template');
-        if (res.ok) {
-            const blob = await res.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = "plantilla_productos.xlsx";
-            a.click();
-        } else {
-            alert("Error descargando plantilla");
-        }
-    } catch (e) {
-        console.error(e);
-        alert("Error de red");
-    }
-};
-
-const handleFileUpload = (event) => {
-    selectedFile.value = event.target.files[0];
-};
-
-const uploadFile = async () => {
-    if (!selectedFile.value) return;
-    
-    const formData = new FormData();
-    formData.append('file', selectedFile.value);
-    
-    try {
-        const res = await fetch('http://localhost:8080/api/productos/batch', {
-            method: 'POST',
-            body: formData
-        });
-        
-        if (res.ok) {
-            alert("Productos cargados exitosamente");
-            showImportModal.value = false;
-            selectedFile.value = null;
-            fetchProductos();
-        } else {
-            alert("Error al cargar el archivo. Verifique el formato.");
-        }
-    } catch (e) {
-        console.error(e);
-        alert("Error de conexión");
-    }
-};
-
 onMounted(fetchProductos);
 </script>
 
@@ -210,8 +130,4 @@ th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
 .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
 
 .alert-info { background: #e3f2fd; color: #0d47a1; padding: 10px; border-radius: 4px; margin-bottom: 20px; font-size: 0.9rem; }
-.import-actions { display: flex; flex-direction: column; gap: 15px; }
-.btn-outline { background: transparent; border: 1px solid #666; color: #333; }
-.btn-success { background: #2ecc71; color: white; border: none; }
-.file-upload { display: flex; align-items: center; gap: 10px; }
 </style>
