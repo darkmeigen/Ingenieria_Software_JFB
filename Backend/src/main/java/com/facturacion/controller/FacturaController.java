@@ -26,9 +26,21 @@ public class FacturaController {
         return ResponseEntity.ok(nuevaFactura);
     }
 
+    // @Autowired
+    // private com.facturacion.service.PdfService pdfService;
+
     @GetMapping
     @Operation(summary = "Listar Facturas", description = "Obtiene el historial de todas las facturas")
     public ResponseEntity<List<Factura>> listarFacturas() {
         return ResponseEntity.ok(facturaService.listarTodas());
     }
+
+    /*
+     * @GetMapping("/{id}/pdf")
+     * public ResponseEntity<byte[]> generarPdf(@PathVariable String id) {
+     * // ... (disabled)
+     * return new
+     * ResponseEntity<>(org.springframework.http.HttpStatus.NOT_IMPLEMENTED);
+     * }
+     */
 }

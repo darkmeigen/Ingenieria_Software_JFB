@@ -30,6 +30,7 @@ public class FacturaService {
         factura.setCliente(cliente);
         factura.setFecha(LocalDateTime.now());
         factura.setEstado("CREADA");
+        factura.setPagos(request.getPagos());
 
         double subtotalAcumulado = 0.0;
         for (var item : request.getProductos()) {

@@ -39,12 +39,18 @@ public class AuthService {
 
         // If Role is CLIENT, create a Client entity automatically
         if ("CLIENT".equalsIgnoreCase(user.getRole())) {
-            com.facturacion.model.Cliente cliente = new com.facturacion.model.Cliente();
-            cliente.setNombre(user.getNombre());
-            cliente.setIdentificacion(user.getCedula());
-            cliente.setDireccion(user.getDireccion());
-            cliente.setEmail(user.getUsername()); // Assuming username is email
-            clienteRepository.save(cliente);
+            try {
+                com.facturacion.model.Cliente cliente = new com.facturacion.model.Cliente();
+                cliente.setNombre(user.getNombre() != null ? user.getNombre() : user.getUsername());
+                cliente.setIdentificacion(user.getCedula() != null ? user.getCedula() : "N/A");
+                cliente.setDireccion(user.getDireccion() != null ? user.getDireccion() : "Sin dirección");
+                cliente.setTelefono(user.getTelefono() != null ? user.getTelefono() : "Sin teléfono");
+                cliente.setEmail(user.getUsername());
+                clienteRepository.save(cliente);
+            } catch (Exception e) {
+                // Log error but allow user registration to proceed (or handle as needed)
+                System.err.println("Error creating client profile: " + e.getMessage());
+            }
         }
 
         return savedUser;

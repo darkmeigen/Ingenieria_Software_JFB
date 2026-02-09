@@ -25,6 +25,18 @@ public class ClienteController {
         return clienteService.guardarCliente(cliente);
     }
 
+    @GetMapping("/buscar/{identificacion}")
+    public ResponseEntity<Cliente> buscarPorCedula(@PathVariable String identificacion) {
+        return clienteService.buscarPorIdentificacion(identificacion)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/autocomplete")
+    public List<Cliente> autocomplete(@RequestParam String query) {
+        return clienteService.buscarClientes(query);
+    }
+
     @GetMapping("/{id}")
     public Cliente obtener(@PathVariable String id) {
         return clienteService.obtenerCliente(id);

@@ -13,5 +13,6 @@ public class Cliente {
     private String nombre;
     private String identificacion; // RUC o Cédula
     private String direccion;
+    private String telefono;
     private String email;
 }

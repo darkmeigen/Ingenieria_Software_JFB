@@ -12,6 +12,7 @@ public class User {
     private String username;
     private String password;
     private String role; // ADMIN, CLIENT
+    private int tipoUsuario; // 1: Admin/Empresa, 0: Cliente/Comprador
 
     // New fields for Registration
     private String nombre;

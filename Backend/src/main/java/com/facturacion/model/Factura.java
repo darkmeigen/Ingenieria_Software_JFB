@@ -21,6 +21,9 @@ public class Factura {
 
     private List<DetalleFactura> detalles = new ArrayList<>();
 
+    // New: Payment Methods
+    private List<Pago> pagos = new ArrayList<>();
+
     private Double subtotal;
     private Double iva;
     private Double total;

@@ -1,5 +1,6 @@
 package com.facturacion.dto;
 
+import com.facturacion.model.Pago;
 import lombok.Data;
 import java.util.List;
 
@@ -7,4 +8,5 @@ import java.util.List;
 public class FacturaRequest {
     private String clienteId;
     private List<DetalleRequest> productos;
+    private List<Pago> pagos;
 }
