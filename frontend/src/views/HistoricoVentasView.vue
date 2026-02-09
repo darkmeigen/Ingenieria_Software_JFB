@@ -3,7 +3,7 @@
     <div class="top-bar">
         <span>Inicio > Ventas > Histórico</span>
         <div class="company-header">
-            <span>Mantenimiento</span>
+            <span>Mantenimiento </span>
             <small>{{ loggedUserName }}</small>
         </div>
     </div>

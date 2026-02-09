@@ -3,8 +3,8 @@
     <div class="header">
       <h1>Inicio > Ventas</h1>
       <div class="company-info">
-        <span>Mantenimiento</span>
-        <small>{{ loggedUserName }}</small>
+        <span>Mantenimiento {{loggedUserName}}</span>
+        <!--<small>{{ loggedUserName }}</small>-->
       </div>
     </div>
 

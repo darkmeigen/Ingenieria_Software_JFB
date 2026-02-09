@@ -6,8 +6,8 @@
     <div class="top-bar">
         <span>Inicio > Ventas > Generar Factura</span>
         <div class="company-header">
-            <span>Mantenimiento</span>
-            <small>{{ loggedUserName }}</small>
+           <span>Mantenimiento {{loggedUserName}}</span>
+        <!--<small>{{ loggedUserName }}</small>-->
         </div>
     </div>
 
@@ -140,13 +140,11 @@
                     <select v-model="pago.metodo" class="form-select full">
                         <option value="EFECTIVO">EFECTIVO</option>
                         <option value="TRANSFERENCIA">TRANSFERENCIA</option>
-                        <option value="TARJETA_DEBITO">TARJETA DE DEBITO</option>
-                        <option value="TARJETA_CREDITO">TARJETA DE CRÉDITO</option>
                     </select>
                 </div>
                 <div class="payment-amount">
                     <input type="number" v-model="pago.monto" class="form-input text-right" step="0.01">
-                    <button class="btn-trash-red" @click="eliminarPago(idx)">🗑️</button>
+                    <button class="btn-trash-red" @click="eliminarPago(idx)">⛌</button>
                 </div>
             </div>
             <div class="payment-footer">
@@ -212,7 +210,15 @@
                             placeholder="Buscar..."
                             autocomplete="off"
                         >
-                        <button class="btn-search">🔍</button>
+                        <button class="btn-search detail-icon-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                        </button>
                     </div>
                     <!-- Client Autocomplete Dropdown -->
                     <ul v-if="sugerencias.length" class="autocomplete-list">
@@ -417,6 +423,19 @@ const agregarAlCarrito = (prod) => {
 };
 
 const recalcularItem = (item) => {
+    if (item.cantidad <= 0) {
+        const idx = carrito.value.indexOf(item);
+        if (idx !== -1) {
+            eliminarItem(idx);
+            toast.value.add('Producto eliminado por cantidad 0', 'info');
+        }
+        return;
+    }
+    
+    if (item.cantidad > item.stock) {
+        toast.value.add(`Stock insuficiente. Solo hay ${item.stock} unidades disponibles.`, 'error');
+        item.cantidad = item.stock;
+    }
     const precioDesc = item.precio * (1 - (item.descuento || 0)/100);
     item.subtotal = precioDesc * item.cantidad;
     item.iva = item.subtotal * 0.12;
@@ -532,7 +551,10 @@ const guardarFactura = async () => {
 .invoice-table th { background: #f8f9fa; padding: 8px; text-align: left; font-size: 0.85rem; color: #666; border-bottom: 2px solid #ddd; }
 .invoice-table td { padding: 8px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
 .qty-input { width: 60px; padding: 4px; border: 1px solid #ddd; border-radius: 3px; }
-.btn-trash { border: none; background: none; cursor: pointer; color: #e74c3c; font-size: 1.2rem; }
+.btn-trash { border: none; background: none; cursor: pointer; color: #e74c3c; padding: 5px; display: flex; align-items: center; justify-content: center; transition: background 0.2s; border-radius: 4px; }
+.btn-trash:hover { background: #ffebee; }
+.btn-trash svg { width: 18px; height: 18px; }
+
 .empty-cell { text-align: right; color: #999; padding: 20px; }
 .total-row { display: flex; justify-content: flex-end; align-items: center; padding: 15px; background: #f1f2f6; gap: 20px; font-weight: bold; }
 .total-amount { font-size: 1.2rem; }
@@ -548,7 +570,9 @@ const guardarFactura = async () => {
 
 .full { width: 100%; border: none; }
 .text-right { text-align: right; }
-.btn-trash-red { background: #ff5252; color: white; border: none; padding: 0 15px; cursor: pointer; }
+.btn-trash-red { background: #ff5252; color: white; border: none; padding: 0 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+.btn-trash-red:hover { background: #ff1744; }
+.btn-trash-red svg { width: 16px; height: 16px; }
 
 /* Footer */
 .footer-actions { display: flex; justify-content: flex-end; gap: 15px; margin-top: 20px; }
@@ -586,7 +610,10 @@ const guardarFactura = async () => {
 label { font-size: 0.85rem; color: #666; margin-bottom: 5px; }
 .input-with-btn { display: flex; }
 .input-with-btn input { flex: 1; border-top-right-radius: 0; border-bottom-right-radius: 0; }
-.btn-search { background: white; border: 1px solid #ddd; border-left: none; padding: 0 10px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; cursor: pointer; }
+.btn-search { background: white; border: 1px solid #ddd; border-left: none; padding: 0 10px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; cursor: pointer; transition: all 0.2s; }
+.detail-icon-btn svg { width: 20px; height: 20px; stroke: #666; }
+.detail-icon-btn:hover { background: #f0f0f0; }
+.detail-icon-btn:hover svg { stroke: #2196F3; }
 .info-box { background: #e3f2fd; color: #0277bd; padding: 10px; font-size: 0.8rem; border-left: 4px solid #0277bd; margin-top: 10px; }
 .modal-footer { padding: 15px 20px; background: white; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; }
 .flex-align { display: flex; align-items: center; }
